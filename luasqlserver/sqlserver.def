@@ -1,0 +1,3 @@
+LIBRARY "luasqlserver"  
+EXPORTS  
+luaopen_luasqlserver @1
