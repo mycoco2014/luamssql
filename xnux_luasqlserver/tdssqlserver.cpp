@@ -1,0 +1,960 @@
+#include "tdssqlserver.h"
+
+
+typedef struct {
+    short      closed;
+} env_data;
+
+
+#define RF(funcName) { #funcName, funcName }
+//
+//static int env_gc (lua_State *L) {
+//    env_data *env= (env_data *)luaL_checkudata (L, 1, LUASQL_ENVIRONMENT_MSSQL);
+//    if (env != NULL && !(env->closed)){
+//        env->closed = 1;
+//    }
+//    return 0;
+//}
+//
+//static int env_close (lua_State *L) {
+//    env_data *env= (env_data *)luaL_checkudata (L, 1, LUASQL_ENVIRONMENT_MSSQL);
+//    luaL_argcheck (L, env != NULL, 1, LUASQL_PREFIX"environment expected");
+//    if (env->closed) {
+//        lua_pushboolean (L, 0);
+//        return 1;
+//    }
+//    env->closed = 1;
+//    lua_pushboolean (L, 1);
+//    return 1;
+//}
+//
+//
+//typedef struct {
+//    short				closed;
+//    int					env;                /* reference to environment */
+//    //_ConnectionPtr     *ms_conn;
+//} conn_data;
+//
+//typedef struct {
+//    short      closed;
+//    int        conn;               /* reference to connection */
+//    int        numcols;            /* number of columns */
+//    int        colnames, coltypes; /* reference to column information tables */
+//    //_RecordsetPtr *ms_res;
+//} cur_data;
+//
+
+LUASQL_API void luasql_setmeta (lua_State *L, const char *name) {
+//    luaL_getmetatable (L, name);
+//    lua_setmetatable (L, -2);
+}
+
+
+static int create_environment (lua_State *L) {
+    env_data *env = (env_data *)lua_newuserdata(L, sizeof(env_data));
+//    luasql_setmeta (L, LUASQL_ENVIRONMENT_MSSQL);
+//    /* fill in structure */
+//    env->closed = 0;
+    return 1;
+}
+//
+//
+//
+//typedef struct { short  closed; } pseudo_data;
+//
+///*
+//** Return the name of the object's metatable.
+//** This function is used by `tostring'.
+//*/
+//static int luasql_tostring (lua_State *L) {
+//    char buff[100];
+//    pseudo_data *obj = (pseudo_data *)lua_touserdata (L, 1);
+//    if (obj->closed)
+//        strcpy (buff, "closed");
+//    else
+//        sprintf (buff, "%p", (void *)obj);
+//    lua_pushfstring (L, "%s (%s)", lua_tostring(L,lua_upvalueindex(1)), buff);
+//    return 1;
+//}
+//
+//
+//#if !defined LUA_VERSION_NUM || LUA_VERSION_NUM==501
+///*
+//** Adapted from Lua 5.2.0
+//*/
+//void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup) {
+//    luaL_checkstack(L, nup+1, "too many upvalues");
+//    for (; l->name != NULL; l++) {	/* fill the table with given functions */
+//        int i;
+//        lua_pushstring(L, l->name);
+//        for (i = 0; i < nup; i++)	/* copy upvalues to the top */
+//            lua_pushvalue(L, -(nup + 1));
+//        lua_pushcclosure(L, l->func, nup);	/* closure with those upvalues */
+//        lua_settable(L, -(nup + 3));
+//    }
+//    lua_pop(L, nup);	/* remove upvalues */
+//}
+//#endif
+//
+///*
+//** Create a metatable and leave it on top of the stack.
+//*/
+//LUASQL_API int luasql_createmeta (lua_State *L, const char *name, const luaL_Reg *methods) {
+//    if (!luaL_newmetatable (L, name))
+//        return 0;
+//
+//    /* define methods */
+//    luaL_setfuncs (L, methods, 0);
+//
+//    /* define metamethods */
+//    lua_pushliteral (L, "__index");
+//    lua_pushvalue (L, -2);
+//    lua_settable (L, -3);
+//
+//    lua_pushliteral (L, "__tostring");
+//    lua_pushstring (L, name);
+//    lua_pushcclosure (L, luasql_tostring, 1);
+//    lua_settable (L, -3);
+//
+//    lua_pushliteral (L, "__metatable");
+//    lua_pushliteral (L, LUASQL_PREFIX"you're not allowed to get this metatable");
+//    lua_settable (L, -3);
+//
+//    return 1;
+//}
+//
+//
+///*
+//** Assumes the table is on top of the stack.
+//*/
+//LUASQL_API void luasql_set_info (lua_State *L) {
+//    lua_pushliteral (L, "_COPYRIGHT");
+//    lua_pushliteral (L, "Copyright (C) xxxxx");
+//    lua_settable (L, -3);
+//    lua_pushliteral (L, "_DESCRIPTION");
+//    lua_pushliteral (L, "LuaSQL is a simple interface from Lua to a DBMS");
+//    lua_settable (L, -3);
+//    lua_pushliteral (L, "_VERSION");
+//    lua_pushliteral (L, "LuaSQL 2.3.1 x");
+//    lua_settable (L, -3);
+//}
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
+//
+///*
+//** Check for valid environment.
+//*/
+//static env_data *getenvironment (lua_State *L) {
+//    env_data *env = (env_data *)luaL_checkudata (L, 1, LUASQL_ENVIRONMENT_MSSQL);
+//    luaL_argcheck (L, env != NULL, 1, "environment expected");
+//    luaL_argcheck (L, !env->closed, 1, "environment is closed");
+//    return env;
+//}
+//
+//
+///*
+//** Create a new Connection object and push it on top of the stack.
+//*/
+//static int create_connection (lua_State *L, int env /*,_ConnectionPtr *const ms_conn*/) {
+////    conn_data *conn = (conn_data *)lua_newuserdata(L, sizeof(conn_data));
+////    luasql_setmeta (L, LUASQL_CONNECTION_MSSQL);
+////
+////    /* fill in structure */
+////    conn->closed = 0;
+////    conn->env = LUA_NOREF;
+////    conn->ms_conn = ms_conn;
+////    lua_pushvalue (L, env);
+////    conn->env = luaL_ref (L, LUA_REGISTRYINDEX);
+//    return 1;
+//}
+//
+///*
+//** Connects to a data source.
+//**     param: one string for each connection parameter, said
+//**     datasource, username, password, host and port.
+//*/
+//static int env_connect (lua_State *L) {
+////    const char *db_constr = luaL_checkstring(L,2);
+////    unsigned long timeout = (unsigned long)luaL_checkinteger(L,3);
+////    WCHAR  *pConStr = c2w(db_constr);
+////
+////    _ConnectionPtr *conn = new _ConnectionPtr;
+////
+////    getenvironment(L); /* validade environment */
+////
+////    HRESULT hr ;
+////
+////    SCODE sc = ::OleInitialize(NULL);
+////    if (FAILED(sc))
+////    {
+////        lua_pushboolean(L,FALSE);
+////        lua_pushfstring(L,"OleInitialize failed,error code:%d ",GetLastError());
+////        goto ExitHandler;
+////    }
+////
+////    hr = conn->CreateInstance(__uuidof(Connection));
+////    if(FAILED(hr))
+////    {
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"CreateInstance failed,error code:%d ",GetLastError());
+////        return 2;
+////    }
+////    if(timeout > 0 )
+////    {
+////        (*conn)->put_ConnectionTimeout(long(timeout));
+////    }
+////
+////    try
+////    {
+////        hr = (*conn)->Open((_bstr_t)pConStr,"","",adModeUnknown);
+////        if(FAILED(hr))
+////        {
+////            lua_pushnil(L);
+////            lua_pushfstring(L,"Open failed,error code:%d ",GetLastError());
+////            goto ExitHandler;
+////        }
+////    }
+////    catch(_com_error ex)
+////    {
+////        _bstr_t bstrDescription(ex.Description());
+////        char errDesc[MAX_ERROR_MSG]={0};
+////        w2cstatic(errDesc,bstrDescription);
+////
+////        _bstr_t bstrSource(ex.Source());
+////        char errSource[MAX_ERROR_MSG] = {0};
+////        w2cstatic(errSource,bstrSource);
+////
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"%s %s",errSource,errDesc);
+////
+////        goto ExitHandler;
+////    }
+////
+////    delete []pConStr;
+////    pConStr = NULL;
+////    return create_connection(L, 1, conn);
+////
+////    ExitHandler:
+////    delete []pConStr;
+////    pConStr = NULL;
+//    return 2;
+//}
+//
+//
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
+//
+//static int conn_gc (lua_State *L) {
+////    conn_data *conn=(conn_data *)luaL_checkudata(L, 1, LUASQL_CONNECTION_MSSQL);
+////    if (conn != NULL && !(conn->closed)) {
+////        /* Nullify structure fields. */
+////        conn->closed = 1;
+////        luaL_unref (L, LUA_REGISTRYINDEX, conn->env);
+////        //mysql_close (conn->my_conn);
+////        if((*(conn->ms_conn))->State){
+////            (*(conn->ms_conn))->Close();
+////        }
+////        delete conn->ms_conn ;
+////        conn->ms_conn = NULL;
+////    }
+//    return 0;
+//}
+//
+///*
+//** Close a Connection object.
+//*/
+//static int conn_close (lua_State *L) {
+////    conn_data *conn=(conn_data *)luaL_checkudata(L, 1, LUASQL_CONNECTION_MSSQL);
+////    luaL_argcheck (L, conn != NULL, 1, LUASQL_PREFIX"connection expected");
+////    if (conn->closed) {
+////        lua_pushboolean (L, 0);
+////        return 1;
+////    }
+////    conn_gc(L);
+////    lua_pushboolean (L, 1);
+//    return 1;
+//}
+//
+////////////////////////////////////////////////////////////////////////////
+//
+//
+///*
+//** Check for valid connection.
+//*/
+//static conn_data *getconnection (lua_State *L) {
+////    conn_data *conn = (conn_data *)luaL_checkudata (L, 1, LUASQL_CONNECTION_MSSQL);
+////    luaL_argcheck (L, conn != NULL, 1, "connection expected");
+////    luaL_argcheck (L, !conn->closed, 1, "connection is closed");
+////    return conn;
+//    return NULL;
+//}
+//
+///*
+//** Commit the current transaction.
+//*/
+//static int conn_commit (lua_State *L) {
+////    conn_data *conn = getconnection (L);
+////    HRESULT hr ;
+////    try
+////    {
+////        hr = (*(conn->ms_conn))->CommitTrans();
+////        if(FAILED(hr)) {
+////            lua_pushboolean(L, FALSE);
+////            lua_pushstring(L,"CommitTrans Failed!");
+////        } else {
+////            lua_pushboolean(L, TRUE);
+////            lua_pushstring(L,"");
+////        }
+////    }
+////    catch(_com_error ex)
+////    {
+////        _bstr_t bstrDescription(ex.Description());
+////        char errDesc[MAX_ERROR_MSG]={0};
+////        w2cstatic(errDesc,bstrDescription);
+////        _bstr_t bstrSource(ex.Source());
+////        char errSource[MAX_ERROR_MSG] = {0};
+////        w2cstatic(errSource,bstrSource);
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"%s %s",errSource,errDesc);
+////    }
+//    return 2;
+//}
+//
+///*
+//** Rollback the current transaction.
+//*/
+//static int conn_rollback (lua_State *L) {
+////    conn_data *conn = getconnection (L);
+////    try
+////    {
+////        HRESULT hr ;
+////        hr = (*(conn->ms_conn))->RollbackTrans();
+////        if(FAILED(hr)) {
+////            lua_pushboolean(L, FALSE);
+////            lua_pushstring(L,"RollbackTrans Failed!");
+////        } else {
+////            lua_pushboolean(L, TRUE);
+////            lua_pushstring(L,"");
+////        }
+////    }
+////    catch(_com_error ex)
+////    {
+////        _bstr_t bstrDescription(ex.Description());
+////        char errDesc[MAX_ERROR_MSG]={0};
+////        w2cstatic(errDesc,bstrDescription);
+////        _bstr_t bstrSource(ex.Source());
+////        char errSource[MAX_ERROR_MSG] = {0};
+////        w2cstatic(errSource,bstrSource);
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"%s %s",errSource,errDesc);
+////    }
+//    return 2;
+//}
+//
+///*
+//** Set "auto commit" property of the connection. Modes ON/OFF
+//** BeginTrans
+//*/
+//static int conn_begintrans (lua_State *L) {
+////    conn_data *conn = getconnection (L);
+////    try
+////    {
+////        long ret = (*(conn->ms_conn))->BeginTrans();
+////        lua_pushnumber(L,ret);
+////        lua_pushstring(L,"");
+////    }
+////    catch(_com_error ex)
+////    {
+////        _bstr_t bstrDescription(ex.Description());
+////        char errDesc[MAX_ERROR_MSG]={0};
+////        w2cstatic(errDesc,bstrDescription);
+////        _bstr_t bstrSource(ex.Source());
+////        char errSource[MAX_ERROR_MSG] = {0};
+////        w2cstatic(errSource,bstrSource);
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"%s %s",errSource,errDesc);
+////    }
+//    return 2;
+//}
+//
+///*
+//** Create a new Cursor object and push it on top of the stack.
+//*/
+//static int create_cursor (lua_State *L, int conn, /*_RecordsetPtr *result,*/ int cols) {
+////    cur_data *cur = (cur_data *)lua_newuserdata(L, sizeof(cur_data));
+////    luasql_setmeta (L, LUASQL_CURSOR_MSSQL);
+////
+////    /* fill in structure */
+////    cur->closed = 0;
+////    cur->conn = LUA_NOREF;
+////    cur->numcols = cols;
+////    cur->colnames = LUA_NOREF;
+////    cur->coltypes = LUA_NOREF;
+////    cur->ms_res = result;
+////    lua_pushvalue (L, conn);
+////    cur->conn = luaL_ref (L, LUA_REGISTRYINDEX);
+//
+//    return 1;
+//}
+//
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//unsigned long mssql_field_count(/*_RecordsetPtr *pRecordset*/){
+////    FieldsPtr m_Fields = (*pRecordset)->GetFields();
+////    return m_Fields->Count;
+//    return 0;
+//}
+//
+//
+//// 只返回行数
+//static int conn_update(lua_State *L){
+////    conn_data *conn = getconnection (L);
+////    const char *db_querysql = luaL_checkstring(L,2);
+////    if(db_querysql == NULL ) {
+////        lua_pushnil(L);
+////        lua_pushstring(L,"args is error");
+////        lua_pushnil(L);
+////        return 3;
+////    }
+////    if(adStateOpen != (*(conn->ms_conn))->State){
+////        lua_pushnil(L);
+////        lua_pushstring(L,"connect is closed");
+////        lua_pushnil(L);
+////        return 3;
+////    }
+////
+////    WCHAR *wupdatesql = c2w(db_querysql);
+////    try{
+////
+////        _variant_t RecordsAffected;
+////
+////        _CommandPtr    pCommand;
+////        pCommand.CreateInstance(__uuidof(Command));
+////
+////        pCommand->ActiveConnection = (*(conn->ms_conn));
+////        pCommand->CommandText = (_bstr_t)wupdatesql;
+////        pCommand->CommandType=adCmdText;
+////        pCommand->Parameters->Refresh();
+////        pCommand->Execute(NULL,&RecordsAffected,adCmdUnknown);
+////
+////        lua_pushnumber(L,RecordsAffected.intVal);
+////        lua_pushstring(L,"");
+////        lua_pushnil(L);
+////    }
+////    catch(_com_error ex)
+////    {
+////        // ERROR
+////        // https://msdn.microsoft.com/en-us/library/ms678037(v=vs.85).aspx
+////        _bstr_t bstrDescription(ex.Description());
+////        char errDesc[MAX_ERROR_MSG]={0};
+////        w2cstatic(errDesc,bstrDescription);
+////        _bstr_t bstrSource(ex.Source());
+////        char errSource[MAX_ERROR_MSG] = {0};
+////        w2cstatic(errSource,bstrSource);
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"%s %s",errSource,errDesc);
+////        lua_pushstring(L,"Com Error Exception");
+////        goto ExitHandler;
+////    }
+////    ExitHandler:
+////    delete []wupdatesql;
+////    wupdatesql = NULL;
+//    return 3;
+//}
+//
+//// 1 RecordSet
+//// 2 RecordsAffected
+//// 3 error string
+//// 4 true is Exception
+//static int conn_execute(lua_State *L){
+////    conn_data *conn = getconnection (L);
+////    const char *db_querysql = luaL_checkstring(L,2);
+////    if(db_querysql == NULL ) {
+////        lua_pushnil(L);
+////        lua_pushnil(L);
+////        lua_pushstring(L,"args is error");
+////        lua_pushnil(L);
+////        return 4;
+////    }
+////    if(adStateOpen != (*(conn->ms_conn))->State){
+////        lua_pushnil(L);
+////        lua_pushnil(L);
+////        lua_pushstring(L,"connect is closed");
+////        lua_pushnil(L);
+////        return 4;
+////    }
+////
+////    WCHAR *wexecutesql = c2w(db_querysql);
+////    try{
+////        _RecordsetPtr  *pRecordset = new _RecordsetPtr;
+////        pRecordset->CreateInstance(__uuidof(Recordset));
+////        _variant_t RecordsAffected;
+////        *pRecordset = (*(conn->ms_conn))->Execute(wexecutesql,&RecordsAffected,adCmdText);
+////
+////        unsigned int num_cols = mssql_field_count(pRecordset);
+////        create_cursor (L, 1, pRecordset, num_cols);
+////        lua_pushnumber(L,RecordsAffected.intVal);
+////        lua_pushstring(L,"");
+////        lua_pushnil(L);
+////    }
+////    catch(_com_error ex)
+////    {
+////        // ERROR
+////        // https://msdn.microsoft.com/en-us/library/ms678037(v=vs.85).aspx
+////        _bstr_t bstrDescription(ex.Description());
+////        char errDesc[MAX_ERROR_MSG]={0};
+////        w2cstatic(errDesc,bstrDescription);
+////        _bstr_t bstrSource(ex.Source());
+////        char errSource[MAX_ERROR_MSG] = {0};
+////        w2cstatic(errSource,bstrSource);
+////        lua_pushnil(L);
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"%s %s",errSource,errDesc);
+////        lua_pushstring(L,"Com Error Exception");
+////    }
+////    delete []wexecutesql;
+////    wexecutesql = NULL;
+//    return 4;
+//}
+//
+//
+//static int conn_query(lua_State *L){
+////    conn_data *conn = getconnection (L);
+////    const char *db_querysql = luaL_checkstring(L,2);
+////    if(db_querysql == NULL ) {
+////        lua_pushnil(L);
+////        lua_pushstring(L,"args is error");
+////        lua_pushnil(L);
+////        return 3;
+////    }
+////    if(adStateOpen != (*(conn->ms_conn))->State){
+////        lua_pushnil(L);
+////        lua_pushstring(L,"connect is closed");
+////        lua_pushnil(L);
+////        return 3;
+////    }
+////
+////    WCHAR *wquerysql = c2w(db_querysql);
+////    try{
+////        _CommandPtr    pCommand;
+////        _RecordsetPtr  *pRecordset = new _RecordsetPtr;
+////        pCommand.CreateInstance(__uuidof(Command));
+////        pRecordset->CreateInstance(__uuidof(Recordset));
+////        (*pRecordset)->Open((_bstr_t)wquerysql,_variant_t((IDispatch*)(*(conn->ms_conn))),adOpenStatic,adLockOptimistic,adCmdText);
+////        if (*pRecordset) {
+////            unsigned int num_cols = mssql_field_count(pRecordset);
+////            create_cursor (L, 1, pRecordset, num_cols);
+////            lua_pushstring(L,"");
+////            lua_pushnil(L);
+////        }
+////        else {
+////            lua_pushnil(L);
+////            lua_pushfstring(L,"execute return null %d", GetLastError());
+////            lua_pushnil(L);
+////            goto ExitHandler;
+////        }
+////    }
+////    catch(_com_error ex)
+////    {
+////        // ERROR
+////        // https://msdn.microsoft.com/en-us/library/ms678037(v=vs.85).aspx
+////        _bstr_t bstrDescription(ex.Description());
+////        char errDesc[MAX_ERROR_MSG]={0};
+////        w2cstatic(errDesc,bstrDescription);
+////        _bstr_t bstrSource(ex.Source());
+////        char errSource[MAX_ERROR_MSG] = {0};
+////        w2cstatic(errSource,bstrSource);
+////        lua_pushnil(L);
+////        lua_pushfstring(L,"%s %s",errSource,errDesc);
+////        lua_pushstring(L,"Com Error Exception");
+////        goto ExitHandler;
+////    }
+////    ExitHandler:
+////    delete []wquerysql;
+////    wquerysql = NULL;
+//    return 3;
+//}
+//
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
+///*
+//** Closes the cursos and nullify all structure fields.
+//*/
+//static int cur_nullify (lua_State *L, cur_data *cur) {
+//    /* Nullify structure fields. */
+////    cur->closed = 1;
+////
+////    if( adStateOpen == (*(cur->ms_res))->State ) {
+////        (*cur->ms_res)->Close();
+////    }
+////
+////    cur->ms_res->Release();
+////    delete cur->ms_res;
+////    cur->ms_res = NULL;
+////
+////    luaL_unref (L, LUA_REGISTRYINDEX, cur->conn);
+////    luaL_unref (L, LUA_REGISTRYINDEX, cur->colnames);
+////    luaL_unref (L, LUA_REGISTRYINDEX, cur->coltypes);
+//    return 0;
+//}
+//
+//
+///*
+//** Cursor object collector function
+//*/
+//static int cur_gc (lua_State *L) {
+////    cur_data *cur = (cur_data *)luaL_checkudata (L, 1, LUASQL_CURSOR_MSSQL);
+////    if (cur != NULL && !(cur->closed))
+////        cur_nullify (L, cur);
+//    return 0;
+//}
+//
+///*
+//** Close the cursor on top of the stack.
+//** Return 1
+//*/
+//static int cur_close (lua_State *L) {
+////    cur_data *cur = (cur_data *)luaL_checkudata (L, 1, LUASQL_CURSOR_MSSQL);
+////    luaL_argcheck (L, cur != NULL, 1, LUASQL_PREFIX"cursor expected");
+////    if (cur->closed) {
+////        lua_pushboolean (L, 0);
+////        return 1;
+////    }
+////    cur_nullify (L, cur);
+////    lua_pushboolean (L, 1);
+//    return 1;
+//}
+//
+//
+//
+///*
+//** Get the internal database type of the given column.
+//*/
+////static char *getcolumntype (/*VARTYPE type*/) {
+//////    switch (type)
+//////    {
+//////        case VT_EMPTY:
+//////            return "";
+//////        case VT_NULL:
+//////            return "NULL";
+//////        case VT_UI1:
+//////        case VT_I2:
+//////        case VT_I4:
+//////        case VT_INT:
+//////            return "int";
+//////        case VT_R4:
+//////            return "float";
+//////        case VT_R8:
+//////            return "double";
+//////        case VT_CY:
+//////            return "money";
+//////        case VT_BSTR:
+//////            return "string";
+//////        case VT_DECIMAL:
+//////            return "decimal";
+//////        case VT_BOOL:
+//////            return "boolean";
+//////        case VT_DATE:
+//////            return "date";
+//////        default:
+//////            return "undefined";
+//////    }
+////    char ptemp[] = "xxxx";
+////    return  ptemp;
+////}
+//
+///*
+//** Creates the lists of fields names and fields types.
+//*/
+//static void create_colinfo (lua_State *L, cur_data *cur) {
+////    char pKeyBuffer[50] = {0};
+////    long idx = 0 ;
+////    FieldsPtr m_Fields = (*(cur->ms_res))->GetFields();
+////
+////    lua_newtable (L); /* names */
+////    lua_newtable (L); /* types */
+////    for (idx = 1; idx <= m_Fields->Count;idx++)
+////    {
+////        FieldPtr m_Field = m_Fields->Item[idx -1 ];
+////        WCHAR *fieldName = (WCHAR*)m_Field->Name;
+////        w2cstatic(pKeyBuffer,fieldName);
+////        VARIANT val = m_Field->GetValue();
+////        lua_pushstring (L,pKeyBuffer);
+////        lua_rawseti (L, -3, idx);
+////        lua_pushfstring(L, "%s",getcolumntype(val.vt));
+////        lua_rawseti (L, -2, idx);
+////    }
+//
+////    cur->coltypes = luaL_ref (L, LUA_REGISTRYINDEX);
+////    cur->colnames = luaL_ref (L, LUA_REGISTRYINDEX);
+//}
+//
+//
+///*
+//** Pushes a column information table on top of the stack.
+//** If the table isn't built yet, call the creator function and stores
+//** a reference to it on the cursor structure.
+//*/
+//static void _pushtable (lua_State *L, cur_data *cur, size_t off) {
+////    int *ref = (int *)((char *)cur + off);
+////
+////    /* If colnames or coltypes do not exist, create both. */
+////    if (*ref == LUA_NOREF)
+////        create_colinfo(L, cur);
+////
+////    /* Pushes the right table (colnames or coltypes) */
+////    lua_rawgeti (L, LUA_REGISTRYINDEX, *ref);
+//}
+//#define pushtable(L,c,m) (_pushtable(L,c,offsetof(cur_data,m)))
+//
+///*
+//** Check for valid cursor.
+//*/
+//static cur_data *getcursor (lua_State *L) {
+//    cur_data *cur = (cur_data *)luaL_checkudata (L, 1, LUASQL_CURSOR_MSSQL);
+//    luaL_argcheck (L, cur != NULL, 1, "cursor expected");
+//    luaL_argcheck (L, !cur->closed, 1, "cursor is closed");
+//    return cur;
+//}
+//
+///*
+//** Return the list of field names.
+//*/
+//
+//static int cur_getcolnames (lua_State *L) {
+////    cur_data *cur = getcursor (L);
+////    _RecordsetPtr res = (*(cur->ms_res));
+////    if( res->State == adStateOpen ) {
+////        pushtable (L, getcursor(L), colnames);
+////        lua_pushstring(L,"");
+////    } else {
+////        lua_pushnil(L);
+////        lua_pushstring(L,"RecordsetPtr state is not open");
+////    }
+//    return 2;
+//}
+//
+///*
+//** Return the list of field types.
+//*/
+//static int cur_getcoltypes (lua_State *L) {
+////    cur_data *cur = getcursor (L);
+////    _RecordsetPtr res = (*(cur->ms_res));
+////    if( res->State == adStateOpen ) {
+////        pushtable (L, getcursor(L), coltypes);
+////        lua_pushstring(L,"");
+////    } else {
+////        lua_pushnil(L);
+////        lua_pushstring(L,"RecordsetPtr state is not open");
+////    }
+//    return 2;
+//}
+//
+//
+///*
+//** Push the number of rows.
+//*/
+//static int cur_numrows (lua_State *L) {
+////    cur_data *cur = getcursor (L);
+////    _RecordsetPtr res = (*(cur->ms_res));
+////    if( res->State == adStateOpen ) {
+////        lua_pushinteger (L, res->RecordCount);
+////        lua_pushstring(L,"");
+////    } else {
+////        lua_pushnil(L);
+////        lua_pushstring(L,"RecordsetPtr state is not open");
+////    }
+//    return 2;
+//}
+//
+//
+//
+//
+///*
+//** Get another row of the given cursor.
+//*/
+//static int cur_fetch (lua_State *L) {
+////    cur_data *cur = getcursor (L);
+////    _RecordsetPtr res = (*(cur->ms_res));
+////
+////    if( res->State != adStateOpen )
+////    {
+////        lua_pushnil(L);
+////        lua_pushstring(L,"RecordsetPtr state is not open");
+////        return 2;
+////    }
+////
+////    if (lua_istable (L, 2)) {
+////        const char *opts = luaL_optstring (L, 3, "n");
+////        if (strchr (opts, 'a') != NULL) {
+////            lua_newtable(L);
+////            int nArray = lua_gettop(L);
+////            int nCols = 0 ;
+////
+////            //////////////////////////////////////////////////////////////////////////
+////            while(!res->adoEOF)
+////            {
+////                char pKeyBuffer[KEY_MAX_LENGTH] = {0};
+////                char pValBuffer[VAL_MAX_LENGTH] = {0};
+////                lua_newtable(L);
+////                int nField = lua_gettop(L);
+////
+////                FieldsPtr m_Fields = res->GetFields();
+////
+////                std::string tempstr;
+////
+////                for (long idx = 0;idx < m_Fields->Count;idx++)
+////                {
+////                    FieldPtr m_Field = m_Fields->Item[idx];
+////                    WCHAR *fieldName = (WCHAR*)m_Field->Name;
+////                    w2cstatic(pKeyBuffer,fieldName);
+////                    lua_pushlstring(L, pKeyBuffer, (strlen(pKeyBuffer)/sizeof(char)));
+////
+////                    VARIANT val = m_Field->GetValue();
+////
+////                    switch(val.vt)
+////                    {
+////                        case VT_EMPTY:
+////                            lua_pushstring(L,"");
+////                            break;
+////
+////                        case VT_NULL:
+////                            lua_pushstring(L,"NULL");
+////                            break;
+////
+////                        case VT_UI1:
+////                        case VT_I2:
+////                        case VT_I4:
+////                        case VT_INT:
+////                            lua_pushnumber(L,val.intVal);
+////                            break;
+////                        case VT_R4:
+////                            lua_pushnumber(L,val.fltVal);
+////                            break;
+////                        case VT_R8:
+////                            lua_pushnumber(L,val.dblVal);
+////                            break;
+////                        case VT_CY:
+////                            ::VariantChangeType(&val,&val,0,VT_BSTR);
+////                            w2cstatic(pValBuffer,val.bstrVal );
+////                            lua_pushstring(L,pValBuffer);
+////                            break;
+////                        case VT_BSTR:
+////                            w2cstatic(pValBuffer,val.bstrVal);
+////                            lua_pushstring(L,pValBuffer);
+////                            break;
+////                        case VT_DECIMAL:
+////                            ::VariantChangeType(&val,&val,0,VT_BSTR);
+////                            w2cstatic(pValBuffer,val.bstrVal);
+////                            lua_pushstring(L,pValBuffer);
+////                            break;
+////                        case VT_BOOL:
+////                            lua_pushboolean(L,val.bVal);
+////                            break;
+////                        case VT_DATE:
+////                            ::VariantChangeType(&val,&val,0,VT_BSTR);
+////                            w2cstatic(pValBuffer,val.bstrVal);
+////                            tempstr = pValBuffer;
+////                            // must replace / to -
+////                            tempstr = tempstr.replace(tempstr.find("/"), 1, "-");
+////                            tempstr = tempstr.replace(tempstr.find("/"), 1, "-");
+////                            lua_pushstring(L,tempstr.c_str());
+////                            break;
+////                        default:
+////                            lua_pushnil(L);
+////                            printf("*****key:%s type:%08X read Failed! \r\n",pKeyBuffer , val.vt );
+////                            break;
+////                    }
+////                    lua_rawset(L,nField);
+////                }
+////
+////                lua_pushvalue(L,nField);
+////                lua_rawseti(L,nArray,++nCols);
+////                lua_settop(L,nArray);
+////                res->MoveNext();
+////            }
+////            lua_pushnil(L);
+////            //////////////////////////////////////////////////////////////////////////
+////        }
+////    }
+////    else {
+////        /*int i;
+////        luaL_checkstack (L, cur->numcols, LUASQL_PREFIX"too many columns");
+////        for (i = 0; i < cur->numcols; i++)
+////        pushvalue (L, row[i], lengths[i]);*/
+////
+////        // return number for cols
+////        lua_pushnumber(L,cur->numcols);
+////        lua_pushnil(L);
+////    }
+//    return 2;
+//}
+
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+/*
+** Create metatables for each class of object.
+*/
+static void create_metatables (lua_State *L) {
+//    struct luaL_Reg environment_methods[] = {
+//            {"__gc", env_gc},
+//            {"close", env_close},
+//            {"connect", env_connect},
+//            {NULL, NULL},
+//    };
+//    struct luaL_Reg connection_methods[] = {
+//            {"__gc", conn_gc},
+//            {"close", conn_close},
+//            //{"escape", escape_string},
+//            {"query", conn_query},		//查询
+//            {"execute", conn_execute},
+//            {"commit", conn_commit},
+//            {"rollback", conn_rollback},
+//            {"begintrans", conn_begintrans},
+//            //{"getlastautoid", conn_getlastautoid},*/
+//            {NULL, NULL},
+//    };
+//    struct luaL_Reg cursor_methods[] = {
+//            {"__gc", cur_gc},
+//            {"close", cur_close},
+//            {"getcolnames", cur_getcolnames},
+//            {"getcoltypes", cur_getcoltypes},
+//            {"fetch", cur_fetch},
+//            {"numrows", cur_numrows},
+//            {NULL, NULL},
+//    };
+//    luasql_createmeta (L, LUASQL_ENVIRONMENT_MSSQL, environment_methods);
+//    luasql_createmeta (L, LUASQL_CONNECTION_MSSQL, connection_methods);
+//    luasql_createmeta (L, LUASQL_CURSOR_MSSQL, cursor_methods);
+//    lua_pop (L, 3);
+}
+
+
+int luaopen_luasqlserver(lua_State* L)
+{
+    struct luaL_Reg driver[] = {
+            {"mssql", create_environment},
+            {NULL, NULL},
+    };
+//    create_metatables (L);
+//    lua_newtable(L);
+//    luaL_setfuncs(L, driver, 0);
+//
+//    luasql_set_info (L);
+//    lua_pushliteral (L, "_MSSQLVERSION");
+//    lua_pushliteral (L, MSSQL_SERVER_VERSION);
+//    lua_settable (L, -3);
+
+    return 1;
+}
